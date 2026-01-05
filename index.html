@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stormex Cast – Multi POV</title>
+<style>
+:root{
+  --bg:#000;
+  --purple:#7b2cff;
+  --purple-dark:#4b168f;
+  --card:#0d0d0d;
+  --text:#fff;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Inter,Arial,sans-serif;background:var(--bg);color:var(--text);}
+header{padding:14px 20px;background:linear-gradient(90deg,var(--purple),var(--purple-dark));text-align:center;font-weight:700;letter-spacing:1px;}
+main{padding:16px;}
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;}
+.pov{background:var(--card);border:2px solid var(--purple);aspect-ratio:16/9;position:relative;overflow:hidden;cursor:pointer;}
+.pov video{width:100%;height:100%;object-fit:cover;}
+.pov .player-name{
+  position:absolute;
+  bottom:6px;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:14px;
+  color:#fff;          /* texte blanc */
+  background:#7b2cff;  /* rectangle mauve */
+  padding:4px 10px;
+  border-radius:6px;
+  font-weight:700;
+  text-align:center;
+  min-width:60px;      /* largeur minimum */
+}
+.pov.full{grid-column:1 / -1;grid-row:1 / -1;z-index:10;}
+.panel{margin-top:16px;background:var(--card);border:2px solid var(--purple);padding:16px;max-width:520px;transition:opacity .4s ease;}
+.panel.hidden{opacity:0;pointer-events:none;}
+.lang-btn{margin-bottom:10px;padding:10px 14px;background:#7b2cff;border:none;color:#fff;cursor:pointer;float:right;}
+</style>
+</head>
+<body>
+<header id="headerText">STORMEX • MULTI POV CAST</header>
+<main>
+  <button id="langBtn" class="lang-btn">FR</button>
+  <button id="fullscreenBtn" style="margin-bottom:10px;padding:10px 14px;background:#7b2cff;border:none;color:#fff;cursor:pointer">⛶ Fullscreen</button>
+  <div class="grid" id="grid">
+    <div class="pov" data-pov="1">
+      <span class="player-name">Nom Joueur</span>
+      <video autoplay muted></video>
+    </div>
+    <div class="pov" data-pov="2">
+      <span class="player-name">Nom Joueur</span>
+      <video autoplay muted></video>
+    </div>
+    <div class="pov" data-pov="3">
+      <span class="player-name">Nom Joueur</span>
+      <video autoplay muted></video>
+    </div>
+    <div class="pov" data-pov="4">
+      <span class="player-name">Nom Joueur</span>
+      <video autoplay muted></video>
+    </div>
+    <div class="pov" data-pov="5">
+      <span class="player-name">Nom Joueur</span>
+      <video autoplay muted></video>
+    </div>
+  </div>
+  <div class="panel" id="panel">
+    <h3 id="panelTitle">Share your screen</h3>
+    <label id="myCodeLabel">Your personal code</label>
+    <input id="myCode" readonly />
+    <label id="povLabel">POV to use</label>
+    <select id="povSelect">
+      <option value="1">Nom Joueur</option>
+      <option value="2">Nom Joueur</option>
+      <option value="3">Nom Joueur</option>
+      <option value="4">Nom Joueur</option>
+      <option value="5">Nom Joueur</option>
+    </select>
+    <label id="casterCodeLabel">Enter caster code</label>
+    <input id="casterCode" placeholder="SESSION CODE" />
+    <button onclick="startShare()" id="shareBtn">Share my screen</button>
+  </div>
+</main>
+<script>
+// Code généré aléatoire
+const myCode = Math.random().toString(36).substring(2,8).toUpperCase();
+document.getElementById('myCode').value = myCode;
+
+// POV logic
+const povs = document.querySelectorAll('.pov');
+const panel = document.getElementById('panel');
+let isFullscreenMode = false;
+
+function focusPOV(num){
+  povs.forEach(p=>p.classList.remove('full'));
+  const pov = document.querySelector(`.pov[data-pov="${num}"]`);
+  if(isFullscreenMode){
+    pov.classList.add('full');
+  }
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key >= '1' && e.key <= '5') focusPOV(e.key);
+});
+
+const fsBtn = document.getElementById('fullscreenBtn');
+fsBtn.onclick = () => {
+  isFullscreenMode = !isFullscreenMode;
+  if(isFullscreenMode){
+    document.getElementById('grid').requestFullscreen();
+  } else {
+    document.exitFullscreen();
+    povs.forEach(p=>p.classList.remove('full'));
+  }
+};
+
+// Partage écran
+async function startShare(){
+  const povNum = document.getElementById('povSelect').value;
+  const video = document.querySelector(`.pov[data-pov="${povNum}"] video`);
+  try{
+    const stream = await navigator.mediaDevices.getDisplayMedia({video:{frameRate:60},audio:true});
+    video.srcObject = stream;
+  }catch(err){alert('Share cancelled');}
+}
+
+// Traduction automatique
+let lang = 'en';
+const langBtn = document.getElementById('langBtn');
+langBtn.onclick = () => {
+  lang = lang === 'en' ? 'fr' : 'en';
+  updateLanguage();
+};
+
+function updateLanguage(){
+  if(lang==='fr'){
+    document.getElementById('headerText').innerText = 'STORMEX • CAST MULTI POV';
+    fsBtn.innerText = '⛶ Plein écran';
+    langBtn.innerText = 'EN';
+    document.getElementById('panelTitle').innerText = 'Partager ton écran';
+    document.getElementById('myCodeLabel').innerText = 'Ton code personnel';
+    document.getElementById('povLabel').innerText = 'POV à utiliser';
+    document.getElementById('casterCodeLabel').innerText = 'Entrer le code du caster';
+    document.getElementById('shareBtn').innerText = 'Partager mon écran';
+  } else {
+    document.getElementById('headerText').innerText = 'STORMEX • MULTI POV CAST';
+    fsBtn.innerText = '⛶ Fullscreen';
+    langBtn.innerText = 'FR';
+    document.getElementById('panelTitle').innerText = 'Share your screen';
+    document.getElementById('myCodeLabel').innerText = 'Your personal code';
+    document.getElementById('povLabel').innerText = 'POV to use';
+    document.getElementById('casterCodeLabel').innerText = 'Enter caster code';
+    document.getElementById('shareBtn').innerText = 'Share my screen';
+  }
+}
+</script>
+</body>
+</html>
